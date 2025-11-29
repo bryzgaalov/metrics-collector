@@ -24,27 +24,38 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respString := strings.TrimPrefix(r.URL.Path, `/update/`)
-	partsStrings := strings.Split(respString, `/`)
-	if len(partsStrings) != 3 {
-		http.Error(w, "Only /update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ> is supported!", http.StatusUnsupportedMediaType)
-	}
-
-	metricType := partsStrings[0]
-	metricName := partsStrings[1]
-	rawValue := partsStrings[2]
-	if metricType != models.Gauge && metricType != models.Counter {
-		http.Error(w, "unknown metric type", http.StatusBadRequest)
+	rawPath := r.URL.Path
+	path := strings.Trim(rawPath, "/")
+	segments := strings.Split(path, "/")
+	if len(segments) == 0 || segments[0] != "update" {
+		http.NotFound(w, r)
 		return
 	}
 
+	tail := segments[1:]
+	switch len(tail) {
+	case 0, 1:
+		http.Error(w, "metric name not provided", http.StatusNotFound)
+		return
+	case 2:
+		http.Error(w, "metric value not provided", http.StatusBadRequest)
+		return
+	case 3:
+	default:
+		http.Error(w, "too many path segments", http.StatusBadRequest)
+		return
+	}
+
+	metricType := tail[0]
+	metricName := tail[1]
+	rawValue := tail[2]
+
 	if metricName == "" {
-		http.Error(w, "unknown metric type", http.StatusNotFound)
+		http.Error(w, "metric name not provided", http.StatusNotFound)
 		return
 	}
 
 	var metric models.Metrics
-
 	switch metricType {
 	case models.Gauge:
 		val, err := strconv.ParseFloat(rawValue, 64)
@@ -74,6 +85,10 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 			MType: models.Counter,
 		}
 		metric.Delta = &delta
+
+	default:
+		http.Error(w, "unknown metric type", http.StatusBadRequest)
+		return
 	}
 
 	if err := Storage.Save(metric); err != nil {
