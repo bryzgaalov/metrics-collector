@@ -10,7 +10,7 @@ import (
 	"github.com/bryzgaalov/metrics-collector/internal/agent/interface"
 )
 
-func CollectRuntimeMetrics(repo _interface.MetricsCollectorRepository) {
+func CollectRuntimeMetrics(repo agentiface.MetricsCollectorRepository) {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
@@ -47,7 +47,7 @@ func CollectRuntimeMetrics(repo _interface.MetricsCollectorRepository) {
 	repo.AddCounter("PollCount", 1)
 }
 
-func SendAllMetricsToServer(repo _interface.MetricsCollectorRepository, baseURL string) error {
+func SendAllMetricsToServer(repo agentiface.MetricsCollectorRepository, baseURL string) error {
 	gauges, counters := repo.Snapshot()
 	var lastErr error
 

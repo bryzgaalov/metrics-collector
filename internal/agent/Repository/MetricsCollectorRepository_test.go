@@ -1,12 +1,11 @@
 package repository
 
 import (
-	_interface "github.com/bryzgaalov/metrics-collector/internal/agent/interface"
 	"testing"
 )
 
 func TestNewMetricsCollector_ImplementsInterfaceAndNotNil(t *testing.T) {
-	var repo _interface.MetricsCollectorRepository = NewMetricsCollector()
+	repo := NewMetricsCollector()
 
 	if repo == nil {
 		t.Fatalf("expected NewMetricsCollector to return non-nil value")

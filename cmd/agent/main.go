@@ -19,7 +19,7 @@ func main() {
 
 		tick++
 		if tick%reportsEvery == 0 {
-			service.SendAllMetricsToServer(storage, constants.ServerBaseURL)
+			_ = service.SendAllMetricsToServer(storage, constants.ServerBaseURL)
 		}
 
 		time.Sleep(constants.PollInterval)

@@ -18,7 +18,7 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tail, ok := parseUrl(w, r)
+	tail, ok := parseURL(w, r)
 	if !ok {
 		return
 	}
@@ -124,7 +124,7 @@ func validateRequest(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-func parseUrl(w http.ResponseWriter, r *http.Request) ([]string, bool) {
+func parseURL(w http.ResponseWriter, r *http.Request) ([]string, bool) {
 	rawPath := r.URL.Path
 	path := strings.Trim(rawPath, "/")
 	segments := strings.Split(path, "/")

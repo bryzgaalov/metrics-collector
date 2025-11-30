@@ -1,4 +1,4 @@
-package _interface
+package agentiface
 
 type MetricsCollectorRepository interface {
 	SetGauge(name string, value float64)

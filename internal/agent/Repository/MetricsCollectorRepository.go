@@ -1,13 +1,13 @@
 package repository
 
-import _interface "github.com/bryzgaalov/metrics-collector/internal/agent/interface"
+import agentiface "github.com/bryzgaalov/metrics-collector/internal/agent/interface"
 
 type MetricsCollector struct {
 	gauges   map[string]float64
 	counters map[string]int64
 }
 
-func NewMetricsCollector() _interface.MetricsCollectorRepository {
+func NewMetricsCollector() agentiface.MetricsCollectorRepository {
 	return &MetricsCollector{
 		gauges:   make(map[string]float64),
 		counters: make(map[string]int64),
