@@ -14,25 +14,15 @@ import (
 var Storage interfaces.MetricsStorageInterface
 
 func MetricsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
+	if !validateRequest(w, r) {
 		return
 	}
 
-	if r.Header.Get("Content-Type") != "text/plain" {
-		http.Error(w, "Only text/plain is supported!", http.StatusUnsupportedMediaType)
+	tail, ok := parseUrl(w, r)
+	if !ok {
 		return
 	}
 
-	rawPath := r.URL.Path
-	path := strings.Trim(rawPath, "/")
-	segments := strings.Split(path, "/")
-	if len(segments) == 0 || segments[0] != "update" {
-		http.NotFound(w, r)
-		return
-	}
-
-	tail := segments[1:]
 	switch len(tail) {
 	case 0, 1:
 		http.Error(w, "metric name not provided", http.StatusNotFound)
@@ -85,7 +75,6 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 			MType: models.Counter,
 		}
 		metric.Delta = &delta
-
 	default:
 		http.Error(w, "unknown metric type", http.StatusBadRequest)
 		return
@@ -120,4 +109,31 @@ func MetricsListHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
+}
+
+func validateRequest(w http.ResponseWriter, r *http.Request) bool {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
+		return false
+	}
+
+	if r.Header.Get("Content-Type") != "text/plain" {
+		http.Error(w, "Only text/plain is supported!", http.StatusUnsupportedMediaType)
+		return false
+	}
+	return true
+}
+
+func parseUrl(w http.ResponseWriter, r *http.Request) ([]string, bool) {
+	rawPath := r.URL.Path
+	path := strings.Trim(rawPath, "/")
+	segments := strings.Split(path, "/")
+
+	if len(segments) == 0 || segments[0] != "update" {
+		http.NotFound(w, r)
+		return nil, false
+	}
+
+	tail := segments[1:]
+	return tail, true
 }
