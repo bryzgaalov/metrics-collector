@@ -229,10 +229,6 @@ func validateRequest(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	if r.Header.Get("Content-Type") != "text/plain" {
-		http.Error(w, "Only text/plain is supported!", http.StatusUnsupportedMediaType)
-		return false
-	}
 	return true
 }
 func parseURL(w http.ResponseWriter, r *http.Request) ([]string, bool) {
