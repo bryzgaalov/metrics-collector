@@ -5,13 +5,14 @@ import (
 	"net"
 	"net/http"
 
+	constants "github.com/bryzgaalov/metrics-collector/internal/agent/Constants"
 	"github.com/bryzgaalov/metrics-collector/internal/handler"
 	"github.com/bryzgaalov/metrics-collector/internal/repository"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
-	address := flag.String("a", "localhost:8080", "HTTP server address")
+	address := flag.String("a", constants.ServerBaseURL, "HTTP server address")
 	flag.Parse()
 
 	mem := repository.NewMemStorage()
