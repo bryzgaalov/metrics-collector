@@ -12,14 +12,17 @@ import (
 
 func main() {
 	address := flag.String("a", constants.ServerBaseURL, "HTTP server address")
-	reportInterval := flag.Duration("r", constants.ReportInterval, "Report interval in seconds")
-	pollInterval := flag.Duration("p", constants.PollInterval, "Poll interval in seconds")
+	rSec := flag.Int("r", int(constants.ReportInterval/time.Second), "Report interval in seconds")
+	pSec := flag.Int("p", int(constants.PollInterval/time.Second), "Poll interval in seconds")
 	flag.Parse()
+
+	reportInterval := time.Duration(*rSec) * time.Second
+	pollInterval := time.Duration(*pSec) * time.Second
 
 	storage := repository.NewMetricsCollector()
 
 	tick := 0
-	reportsEvery := int(*reportInterval / *pollInterval)
+	reportsEvery := int(reportInterval / pollInterval)
 
 	for {
 		service.CollectRuntimeMetrics(storage)
@@ -29,7 +32,7 @@ func main() {
 			_ = service.SendAllMetricsToServer(storage, *address)
 		}
 
-		time.Sleep(*pollInterval)
+		time.Sleep(pollInterval)
 	}
 
 }
