@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net"
 	"net/http"
 
 	"github.com/bryzgaalov/metrics-collector/internal/handler"
@@ -22,7 +23,13 @@ func main() {
 	r.Get("/value/{type}/{name}", handler.MetricValueHandler)
 	r.Get("/", handler.BaseHTMLHandler)
 
-	err := http.ListenAndServe(*address, r)
+	listenAddr := *address
+	if host, port, err := net.SplitHostPort(*address); err == nil && port != "" {
+		_ = host
+		listenAddr = ":" + port
+	}
+
+	err := http.ListenAndServe(listenAddr, r)
 	if err != nil {
 		panic(err)
 	}
