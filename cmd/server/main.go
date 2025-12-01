@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 
 	"github.com/bryzgaalov/metrics-collector/internal/handler"
@@ -9,6 +10,9 @@ import (
 )
 
 func main() {
+	address := flag.String("a", "localhost:8080", "HTTP server address")
+	flag.Parse()
+
 	mem := repository.NewMemStorage()
 	handler.Storage = mem
 
@@ -18,7 +22,7 @@ func main() {
 	r.Get("/value/{type}/{name}", handler.MetricValueHandler)
 	r.Get("/", handler.BaseHTMLHandler)
 
-	err := http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(*address, r)
 	if err != nil {
 		panic(err)
 	}
