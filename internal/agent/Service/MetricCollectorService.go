@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/bryzgaalov/metrics-collector/internal/agent/interface"
 )
@@ -50,6 +51,10 @@ func CollectRuntimeMetrics(repo agentiface.MetricsCollectorRepository) {
 func SendAllMetricsToServer(repo agentiface.MetricsCollectorRepository, baseURL string) error {
 	gauges, counters := repo.Snapshot()
 	var lastErr error
+
+	if !strings.HasPrefix(baseURL, "http://") && !strings.HasPrefix(baseURL, "https://") {
+		baseURL = "http://" + baseURL
+	}
 
 	for name, value := range gauges {
 		url := fmt.Sprintf("%s/update/gauge/%s/%s",
