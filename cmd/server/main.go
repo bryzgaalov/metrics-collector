@@ -2,17 +2,16 @@ package main
 
 import (
 	"flag"
-	"net"
 	"net/http"
+	"strings"
 
-	constants "github.com/bryzgaalov/metrics-collector/internal/agent/Constants"
 	"github.com/bryzgaalov/metrics-collector/internal/handler"
 	"github.com/bryzgaalov/metrics-collector/internal/repository"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
-	address := flag.String("a", constants.ServerBaseURL, "HTTP server address")
+	address := flag.String("a", "localhost:8080", "Server address host:port")
 	flag.Parse()
 
 	mem := repository.NewMemStorage()
@@ -24,13 +23,12 @@ func main() {
 	r.Get("/value/{type}/{name}", handler.MetricValueHandler)
 	r.Get("/", handler.BaseHTMLHandler)
 
-	listenAddr := *address
-	if host, port, err := net.SplitHostPort(*address); err == nil && port != "" {
-		_ = host
-		listenAddr = ":" + port
+	listen := *address
+	if parts := strings.Split(*address, ":"); len(parts) == 2 {
+		listen = ":" + parts[1]
 	}
 
-	err := http.ListenAndServe(listenAddr, r)
+	err := http.ListenAndServe(listen, r)
 	if err != nil {
 		panic(err)
 	}
