@@ -174,7 +174,7 @@ func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "metric value is nil", http.StatusInternalServerError)
 			return
 		}
-		_, err := fmt.Fprintf(w, "%f", *metric.Value)
+		_, err := fmt.Fprintf(w, "%g", *metric.Value)
 		if err != nil {
 			return
 		}
