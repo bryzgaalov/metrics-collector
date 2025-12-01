@@ -192,11 +192,11 @@ func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
 }
 func BaseHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	metrics := Storage.GetAll()
-	var list []View.MetricView
+	var list []view.MetricView
 	_ = r.URL.Path // Сделал заглушку, потому что ругалось на параметр r т.к. он был не используемым
 
 	for name, m := range metrics {
-		mv := View.MetricView{
+		mv := view.MetricView{
 			Name: name,
 			Type: m.MType,
 		}
