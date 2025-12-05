@@ -15,7 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-var Storage interfaces.MetricsStorageInterface
+var Storage interfaces.MetricsStorage
 var indexTmpl = template.Must(template.New("index").Parse(`
 <!DOCTYPE html>
 <html>
@@ -44,6 +44,7 @@ var indexTmpl = template.Must(template.New("index").Parse(`
 `))
 
 func MetricsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	if !validateRequest(w, r) {
 		return
 	}
@@ -71,7 +72,7 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 	rawValue := tail[2]
 
 	if metricName == "" {
-		http.Error(w, "metric name not provided", http.StatusNotFound)
+		http.Error(w, "metric name not provided", http.StatusBadRequest)
 		return
 	}
 
@@ -96,7 +97,7 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if existing, ok := Storage.Get(metricName); ok && existing.Delta != nil {
+		if existing, ok := Storage.Get(ctx, metricName); ok && existing.Delta != nil {
 			delta = *existing.Delta + delta
 		}
 
@@ -110,7 +111,7 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := Storage.Save(metric); err != nil {
+	if err := Storage.Save(ctx, metric); err != nil {
 		http.Error(w, "failed to save metric", http.StatusInternalServerError)
 		return
 	}
@@ -125,8 +126,8 @@ func MetricsListHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "only GET is allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	all := Storage.GetAll()
+	ctx := r.Context()
+	all, _ := Storage.GetAll(ctx)
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -137,9 +138,10 @@ func MetricsListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(data)
+	w.Write(data)
 }
 func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	metricType := chi.URLParam(r, "type")
 	if metricType == "" {
 		http.Error(w, "metric type is required", http.StatusBadRequest)
@@ -156,7 +158,7 @@ func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := Storage.Get(metricName)
+	metric, ok := Storage.Get(ctx, metricName)
 	if !ok {
 		http.Error(w, "metric not found", http.StatusNotFound)
 		return
@@ -191,7 +193,8 @@ func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func BaseHTMLHandler(w http.ResponseWriter, r *http.Request) {
-	metrics := Storage.GetAll()
+	ctx := r.Context()
+	metrics, _ := Storage.GetAll(ctx)
 	var list []view.MetricView
 	_ = r.URL.Path // Сделал заглушку, потому что ругалось на параметр r т.к. он был не используемым
 

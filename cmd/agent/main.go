@@ -21,18 +21,17 @@ func main() {
 
 	storage := repository.NewMetricsCollector()
 
-	tick := 0
-	reportsEvery := int(reportInterval / pollInterval)
+	pollTicker := time.NewTicker(pollInterval)
+	reportTicker := time.NewTicker(reportInterval)
 
 	for {
-		service.CollectRuntimeMetrics(storage)
+		select {
+		case <-pollTicker.C:
+			service.CollectRuntimeMetrics(storage)
 
-		tick++
-		if tick%reportsEvery == 0 {
-			_ = service.SendAllMetricsToServer(storage, *address)
+		case <-reportTicker.C:
+			service.SendAllMetricsToServer(storage, *address)
 		}
-
-		time.Sleep(pollInterval)
 	}
 
 }
