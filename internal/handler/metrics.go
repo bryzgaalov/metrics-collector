@@ -15,7 +15,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-var Storage interfaces.MetricsStorage
+var Service interfaces.MetricsService
+
 var indexTmpl = template.Must(template.New("index").Parse(`
 <!DOCTYPE html>
 <html>
@@ -97,7 +98,7 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if existing, ok := Storage.Get(ctx, metricName); ok && existing.Delta != nil {
+		if existing, ok := Service.GetMetric(ctx, metricName); ok && existing.Delta != nil {
 			delta = *existing.Delta + delta
 		}
 
@@ -111,7 +112,7 @@ func MetricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := Storage.Save(ctx, metric); err != nil {
+	if err := Service.UpdateMetric(ctx, metric); err != nil {
 		http.Error(w, "failed to save metric", http.StatusInternalServerError)
 		return
 	}
@@ -127,7 +128,7 @@ func MetricsListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	all, _ := Storage.GetAll(ctx)
+	all, _ := Service.ListMetrics(ctx)
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -158,7 +159,7 @@ func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := Storage.Get(ctx, metricName)
+	metric, ok := Service.GetMetric(ctx, metricName)
 	if !ok {
 		http.Error(w, "metric not found", http.StatusNotFound)
 		return
@@ -194,7 +195,7 @@ func MetricValueHandler(w http.ResponseWriter, r *http.Request) {
 }
 func BaseHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	metrics, _ := Storage.GetAll(ctx)
+	metrics, _ := Service.ListMetrics(ctx)
 	var list []view.MetricView
 	_ = r.URL.Path // Сделал заглушку, потому что ругалось на параметр r т.к. он был не используемым
 

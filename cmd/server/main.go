@@ -9,6 +9,7 @@ import (
 
 	"github.com/bryzgaalov/metrics-collector/internal/handler"
 	"github.com/bryzgaalov/metrics-collector/internal/repository"
+	"github.com/bryzgaalov/metrics-collector/internal/service"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -45,7 +46,7 @@ func main() {
 	flag.Parse()
 
 	mem := repository.NewMemStorage()
-	handler.Storage = mem
+	handler.Service = service.NewMetricsService(mem)
 
 	r := chi.NewRouter()
 	r.Post("/update/*", handler.MetricsHandler)
