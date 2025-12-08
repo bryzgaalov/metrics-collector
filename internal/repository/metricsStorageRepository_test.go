@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"testing"
 
 	models "github.com/bryzgaalov/metrics-collector/internal/model"
@@ -24,12 +25,12 @@ func TestMemStorage_SaveAndGet(t *testing.T) {
 		Value: float64Ptr(123.456),
 	}
 
-	err := s.Save(metric)
+	err := s.Save(context.Background(), metric)
 	if err != nil {
 		t.Fatalf("unexpected error from Save: %v", err)
 	}
 
-	got, ok := s.Get("Alloc")
+	got, ok := s.Get(context.Background(), "Alloc")
 	if !ok {
 		t.Fatalf("expected metric 'Alloc' to exist, but it was not found")
 	}
@@ -46,10 +47,10 @@ func TestMemStorage_SaveOverridesExisting(t *testing.T) {
 	m1 := models.Metrics{ID: "Counter", MType: models.Counter, Delta: int64Ptr(2)}
 	m2 := models.Metrics{ID: "Counter", MType: models.Counter, Delta: int64Ptr(10)}
 
-	_ = s.Save(m1)
-	_ = s.Save(m2)
+	_ = s.Save(context.Background(), m1)
+	_ = s.Save(context.Background(), m2)
 
-	got, ok := s.Get("Counter")
+	got, ok := s.Get(context.Background(), "Counter")
 	if !ok {
 		t.Fatalf("expected metric 'Counter' to exist")
 	}
@@ -63,7 +64,7 @@ func int64Ptr(v int64) *int64 { return &v }
 func TestMemStorage_GetNotExisting(t *testing.T) {
 	s := NewMemStorage()
 
-	_, ok := s.Get("UnknownMetric")
+	_, ok := s.Get(context.Background(), "UnknownMetric")
 	if ok {
 		t.Fatalf("expected ok==false for missing metric")
 	}
