@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,12 +11,17 @@ import (
 	"github.com/bryzgaalov/metrics-collector/internal/handler"
 	"github.com/bryzgaalov/metrics-collector/internal/repository"
 	"github.com/bryzgaalov/metrics-collector/internal/service"
+	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 )
 
 type NetAddress struct {
 	Host string
 	Port int
+}
+
+type Config struct {
+	Address string `env:"ADDRESS"`
 }
 
 func (a NetAddress) String() string {
@@ -55,6 +61,14 @@ func main() {
 	r.Get("/", handler.BaseHTMLHandler)
 
 	listenAddr := ":" + strconv.Itoa(addr.Port)
+	var cfg Config
+	errParsing := env.Parse(&cfg)
+	if errParsing != nil {
+		log.Fatal(errParsing)
+	}
+	if cfg.Address != "" {
+		listenAddr = cfg.Address
+	}
 
 	err := http.ListenAndServe(listenAddr, r)
 	if err != nil {
